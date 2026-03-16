@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { getGames, getPlayers, getVenues } from "@/lib/api";
-import { formatDateTime } from "@/lib/format";
+import { formatCurrency, formatDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function DashboardPage() {
   const [games, players, venues] = await Promise.all([
@@ -61,6 +62,7 @@ export default async function DashboardPage() {
               <div>
                 <p style={{ fontWeight: 650 }}>{game.game_title || `Tournament ${game.game_id}`}</p>
                 <p className="muted">{game.venue_name}</p>
+                <p className="muted" style={{ fontSize: "0.8rem" }}>Buy-in: {formatCurrency(game.buy_in)}</p>
               </div>
               <p>{formatDateTime(game.start_time)}</p>
               <p>
