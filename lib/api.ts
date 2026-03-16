@@ -7,44 +7,84 @@ import type {
   Venue,
 } from "./types";
 import { pointsForRank } from "./scoring";
+import { ENV } from "./env";
 
-const SERVER_API_BASE =
-  process.env.BACKEND_API_URL ?? "http://127.0.0.1:8001";
-const CLIENT_API_BASE = "/api";
+// ---------------------------------------------------------------------------
+// Error type
+// ---------------------------------------------------------------------------
 
-async function fetchJSON<T>(path: string): Promise<T> {
-  const base =
-    typeof window === "undefined" ? SERVER_API_BASE : CLIENT_API_BASE;
-
-  const res = await fetch(`${base}${path}`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error(`API ${res.status} on ${path}`);
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly url: string,
+    public readonly body: string,
+  ) {
+    super(`API ${status} – ${url}`);
+    this.name = "ApiError";
   }
-
-  return res.json();
 }
 
+// ---------------------------------------------------------------------------
+// Core fetch wrapper
+// ---------------------------------------------------------------------------
+
+export async function apiFetch<T>(
+  path: string,
+  timeoutMs = 10_000,
+): Promise<T> {
+  const base = typeof window === "undefined" ? ENV.apiServer : ENV.apiPublic;
+  const url = `${base}${path}`;
+
+  console.log(`[api] GET ${url}`);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    const msg = err instanceof Error ? err.message : String(err);
+    const isTimeout =
+      err instanceof Error && err.name === "AbortError";
+    throw new ApiError(0, url, isTimeout ? `Timed out after ${timeoutMs}ms` : msg);
+  }
+  clearTimeout(timer);
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new ApiError(res.status, url, body);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+// ---------------------------------------------------------------------------
+// Public helpers (API unchanged from the outside)
+// ---------------------------------------------------------------------------
+
 export function getPlayers(): Promise<Player[]> {
-  return fetchJSON<Player[]>("/players");
+  return apiFetch<Player[]>("/players");
 }
 
 export function getVenues(): Promise<Venue[]> {
-  return fetchJSON<Venue[]>("/venues");
+  return apiFetch<Venue[]>("/venues");
 }
 
 export function getGames(): Promise<Game[]> {
-  return fetchJSON<Game[]>("/games");
+  return apiFetch<Game[]>("/games");
 }
 
 export function getGame(id: number | string): Promise<GameDetail> {
-  return fetchJSON<GameDetail>(`/games/${id}`);
+  return apiFetch<GameDetail>(`/games/${id}`);
 }
 
 export function getGameResults(id: number | string): Promise<Result[]> {
-  return fetchJSON<Result[]>(`/games/${id}/results`);
+  return apiFetch<Result[]>(`/games/${id}/results`);
 }
 
 export async function getLeaderboard(): Promise<LeaderboardRow[]> {
