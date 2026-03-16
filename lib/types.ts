@@ -19,6 +19,7 @@ export interface Game {
   game_title: string;
   start_time: string | null;
   status: string;
+  buy_in: number | null;
   venue_name: string;
 }
 
@@ -35,6 +36,7 @@ export interface GameDetail {
   game_title: string;
   start_time: string | null;
   status: string;
+  buy_in: number | null;
   venue: {
     venue_id: number;
     venue_name: string;
