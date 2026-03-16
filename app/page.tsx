@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getGames, getPlayers, getVenues } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const [games, players, venues] = await Promise.all([
     getGames(),

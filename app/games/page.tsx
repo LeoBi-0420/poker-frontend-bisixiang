@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getGames } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function GamesPage() {
   const games = await getGames();
 

@@ -1,5 +1,7 @@
 import { getVenues } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 export default async function VenuesPage() {
   const venues = await getVenues();
 
