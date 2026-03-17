@@ -49,6 +49,8 @@ export interface LeaderboardRow {
   player: string;
   total_points: number;
   tournaments_played: number;
-  first_places: number;
+  wins: number;
+  top_three_finishes: number;
+  average_finish: number;
   total_kos: number;
 }

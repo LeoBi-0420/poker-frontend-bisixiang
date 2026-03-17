@@ -101,7 +101,9 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
     {
       total_points: number;
       tournaments_played: number;
-      first_places: number;
+      wins: number;
+      top_three_finishes: number;
+      finish_total: number;
       total_kos: number;
     }
   >();
@@ -111,13 +113,17 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
       const current = bucket.get(row.player) ?? {
         total_points: 0,
         tournaments_played: 0,
-        first_places: 0,
+        wins: 0,
+        top_three_finishes: 0,
+        finish_total: 0,
         total_kos: 0,
       };
 
       current.total_points += pointsForRank(row.finish_rank);
       current.tournaments_played += 1;
-      current.first_places += row.finish_rank === 1 ? 1 : 0;
+      current.wins += row.finish_rank === 1 ? 1 : 0;
+      current.top_three_finishes += row.finish_rank <= 3 ? 1 : 0;
+      current.finish_total += row.finish_rank;
       current.total_kos += row.kos;
 
       bucket.set(row.player, current);
@@ -125,10 +131,22 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
   }
 
   const sorted = [...bucket.entries()]
-    .map(([player, stats]) => ({ player, ...stats }))
+    .map(([player, stats]) => ({
+      player,
+      total_points: stats.total_points,
+      tournaments_played: stats.tournaments_played,
+      wins: stats.wins,
+      top_three_finishes: stats.top_three_finishes,
+      average_finish:
+        stats.tournaments_played === 0
+          ? 0
+          : Number((stats.finish_total / stats.tournaments_played).toFixed(2)),
+      total_kos: stats.total_kos,
+    }))
     .sort((a, b) => {
       if (b.total_points !== a.total_points) return b.total_points - a.total_points;
-      if (b.first_places !== a.first_places) return b.first_places - a.first_places;
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      if (a.average_finish !== b.average_finish) return a.average_finish - b.average_finish;
       return b.total_kos - a.total_kos;
     });
 
