@@ -3,6 +3,8 @@ import type {
   GameDetail,
   LeaderboardRow,
   Player,
+  PlayerProfile,
+  PlayerProfileGame,
   Result,
   Venue,
 } from "./types";
@@ -154,4 +156,71 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
     rank: index + 1,
     ...row,
   }));
+}
+
+export async function getPlayerProfile(id: number | string): Promise<PlayerProfile> {
+  const playerId = Number(id);
+  if (Number.isNaN(playerId)) {
+    throw new ApiError(400, String(id), "Invalid player id");
+  }
+
+  const players = await getPlayers();
+  const player = players.find((entry) => entry.player_id === playerId);
+  if (!player) {
+    throw new ApiError(404, `/players/${playerId}`, "Player not found");
+  }
+
+  const games = await getGames();
+  const resultsByGame = await Promise.all(
+    games.map(async (game) => ({
+      game,
+      results: await getGameResults(game.game_id),
+    })),
+  );
+
+  const recentResults: PlayerProfileGame[] = resultsByGame
+    .flatMap(({ game, results }) =>
+      results
+        .filter((row) => row.player === player.display_name)
+        .map((row) => ({
+          game_id: game.game_id,
+          game_title: game.game_title || `Game ${game.game_id}`,
+          start_time: game.start_time,
+          venue_name: game.venue_name,
+          finish_rank: row.finish_rank,
+          points: pointsForRank(row.finish_rank),
+          kos: row.kos,
+          eliminated_by: row.eliminated_by,
+        })),
+    )
+    .sort((a, b) => {
+      const timeA = a.start_time ? new Date(a.start_time).getTime() : 0;
+      const timeB = b.start_time ? new Date(b.start_time).getTime() : 0;
+      return timeB - timeA;
+    });
+
+  const gamesPlayed = recentResults.length;
+  const wins = recentResults.filter((row) => row.finish_rank === 1).length;
+  const topThreeFinishes = recentResults.filter((row) => row.finish_rank <= 3).length;
+  const totalPoints = recentResults.reduce((sum, row) => sum + row.points, 0);
+  const totalKos = recentResults.reduce((sum, row) => sum + row.kos, 0);
+  const averageFinish =
+    gamesPlayed === 0
+      ? 0
+      : Number(
+          (
+            recentResults.reduce((sum, row) => sum + row.finish_rank, 0) / gamesPlayed
+          ).toFixed(2),
+        );
+
+  return {
+    player,
+    total_points: totalPoints,
+    games_played: gamesPlayed,
+    wins,
+    top_three_finishes: topThreeFinishes,
+    average_finish: averageFinish,
+    total_kos: totalKos,
+    recent_results: recentResults,
+  };
 }

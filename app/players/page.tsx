@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/public/PageHeader";
 import { StatCard } from "@/components/public/StatCard";
 import { DataTable } from "@/components/public/DataTable";
@@ -35,7 +36,9 @@ export default async function PlayersPage() {
             className: "table-col-primary",
             render: (player) => (
               <div>
-                <p className="table-title">{player.display_name}</p>
+                <Link href={`/players/${player.player_id}`} className="table-link table-title">
+                  {player.display_name}
+                </Link>
                 <p className="muted">Player #{player.player_id}</p>
               </div>
             ),

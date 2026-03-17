@@ -5,6 +5,28 @@ export interface Player {
   created_at: string | null;
 }
 
+export interface PlayerProfileGame {
+  game_id: number;
+  game_title: string;
+  start_time: string | null;
+  venue_name: string;
+  finish_rank: number;
+  points: number;
+  kos: number;
+  eliminated_by: string | null;
+}
+
+export interface PlayerProfile {
+  player: Player;
+  total_points: number;
+  games_played: number;
+  wins: number;
+  top_three_finishes: number;
+  average_finish: number;
+  total_kos: number;
+  recent_results: PlayerProfileGame[];
+}
+
 export interface Venue {
   venue_id: number;
   venue_name: string;
