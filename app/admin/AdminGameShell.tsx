@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Player, Venue } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
+import { pointsForRank } from "@/lib/scoring";
 
 interface Props {
   initialPlayers: Player[];
@@ -58,6 +59,20 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
 
   function updateRow(index: number, patch: Partial<ResultDraft>) {
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  }
+
+  function updateRank(index: number, nextRank: number | "") {
+    setRows((prev) =>
+      prev.map((row, i) => {
+        if (i !== index) return row;
+        return {
+          ...row,
+          rank: nextRank,
+          // Keep admin entry fast: rank selection auto-fills MVP points.
+          points: nextRank === "" ? "" : pointsForRank(Number(nextRank)),
+        };
+      }),
+    );
   }
 
   function addRow() {
@@ -197,7 +212,7 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
                       </select>
                     </td>
                     <td>
-                      <input className="admin-table-input" type="number" min="1" value={row.rank} onChange={(e) => updateRow(index, { rank: e.target.value ? Number(e.target.value) : "" })} />
+                      <input className="admin-table-input" type="number" min="1" value={row.rank} onChange={(e) => updateRank(index, e.target.value ? Number(e.target.value) : "")} />
                     </td>
                     <td>
                       <input className="admin-table-input" type="number" value={row.points} onChange={(e) => updateRow(index, { points: e.target.value ? Number(e.target.value) : "" })} />
