@@ -84,6 +84,20 @@ a {
   padding: 1rem 0 2.5rem;
 }
 
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.page-eyebrow {
+  color: var(--accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
 .page-heading {
   font-size: 1.35rem;
   font-weight: 750;
@@ -108,10 +122,20 @@ a {
   padding: 0.85rem 0.95rem;
 }
 
+.stat-card {
+  min-height: 126px;
+}
+
 .stat-value {
   font-size: 1.4rem;
   font-weight: 760;
   margin-top: 0.25rem;
+}
+
+.stat-hint {
+  color: var(--text-subtle);
+  margin-top: 0.55rem;
+  font-size: 0.83rem;
 }
 
 .muted {
@@ -128,11 +152,40 @@ a {
   font-weight: 620;
 }
 
+.pill-ghost {
+  background: transparent;
+  border: 1px dashed var(--line);
+  color: var(--text-subtle);
+}
+
 .table-list {
   margin-top: 1rem;
   border: 1px solid var(--line);
   border-radius: 0.9rem;
   overflow: hidden;
+}
+
+.table-shell {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.table-head {
+  display: none;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-alt);
+  color: var(--text-subtle);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table-body {
+  display: grid;
 }
 
 .table-row {
@@ -145,6 +198,36 @@ a {
 
 .table-row:last-child {
   border-bottom: 0;
+}
+
+.table-label {
+  color: var(--text-subtle);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.28rem;
+}
+
+.table-title {
+  font-weight: 700;
+}
+
+.table-link {
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.table-col-primary {
+  min-width: 0;
 }
 
 .rank-badge {
@@ -167,6 +250,91 @@ a {
   margin-top: 0.9rem;
 }
 
+.state-shell {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: start;
+  padding: 1rem 0 1.25rem;
+}
+
+.state-shell-error {
+  max-width: 760px;
+}
+
+.loading-orb {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-soft), white);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 0 0 0.45rem color-mix(in srgb, var(--accent) 14%, white 86%);
+}
+
+.skeleton-card {
+  min-height: 96px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.1)),
+    var(--surface);
+}
+
+.empty-state {
+  padding: 1.2rem 1rem;
+}
+
+.empty-state-title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.form-stack {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.form-field label {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.92rem;
+}
+
+.admin-table-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.btn {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
 @media (min-width: 768px) {
   .app-header-inner {
     display: flex;
@@ -176,21 +344,36 @@ a {
 
   .app-nav {
     margin-top: 0;
-    width: 430px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 540px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .page-wrap {
     padding-top: 1.35rem;
   }
 
+  .page-header {
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+  }
+
   .card-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .table-head {
+    display: grid;
+    gap: 1rem;
+    padding: 0.85rem 0.9rem;
+  }
+
   .table-row {
-    grid-template-columns: 3fr 1fr 1fr 1fr;
     align-items: center;
     gap: 1rem;
+  }
+
+  .table-label {
+    display: none;
   }
 }

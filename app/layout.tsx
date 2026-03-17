@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Navbar } from "@/components/public/Navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,13 +12,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const navItems = [
-    { href: "/", label: "Dashboard" },
-    { href: "/rankings", label: "Rankings" },
-    { href: "/tournaments", label: "Tournaments" },
-    { href: "/venues", label: "Venues" },
-  ];
-
   return (
     <html lang="en">
       <body className="antialiased">
@@ -29,13 +22,7 @@ export default function RootLayout({
                 <p className="eyebrow">Poker Tournament Manager</p>
                 <h1 className="app-title">Tournament Control Panel</h1>
               </div>
-              <nav className="app-nav" aria-label="Primary">
-                {navItems.map((item) => (
-                  <Link key={item.href} href={item.href} className="nav-link">
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
+              <Navbar />
             </div>
           </header>
           {children}

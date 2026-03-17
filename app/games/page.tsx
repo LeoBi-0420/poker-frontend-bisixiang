@@ -1,44 +1,82 @@
 import Link from "next/link";
+import { DataTable } from "@/components/public/DataTable";
+import { EmptyState } from "@/components/public/EmptyState";
+import { PageHeader } from "@/components/public/PageHeader";
+import { StatCard } from "@/components/public/StatCard";
 import { getGames } from "@/lib/api";
-import { formatDateTime } from "@/lib/format";
+import { formatCurrency, formatDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function GamesPage() {
   const games = await getGames();
+  const completedGames = games.filter((game) => game.status === "completed").length;
+  const scheduledGames = games.filter((game) => game.status === "scheduled").length;
+  const averageBuyIn =
+    games.length === 0
+      ? 0
+      : games.reduce((sum, game) => sum + (game.buy_in ?? 0), 0) / games.length;
 
   return (
     <main className="page-wrap">
-      <section>
-        <h2 className="page-heading">Games</h2>
-        <p className="page-subheading">Tournament list with direct detail access.</p>
+      <PageHeader
+        eyebrow="Schedule"
+        title="Games"
+        description="Recent poker tournaments with status, timing, and venue context."
+      />
+
+      <section className="card-grid">
+        <StatCard label="Total Games" value={games.length} hint="All tracked tournaments" />
+        <StatCard label="Completed" value={completedGames} hint="Finished games" />
+        <StatCard label="Scheduled" value={scheduledGames} hint="Upcoming or pending games" />
+        <StatCard label="Average Buy-in" value={formatCurrency(averageBuyIn)} hint="Across listed games" />
       </section>
 
-      <section className="table-list">
-        {games.length === 0 && (
-          <div className="table-row">
-            <p className="muted">No tournaments found.</p>
-          </div>
-        )}
-        {games.map((game) => (
-          <article key={game.game_id} className="table-row">
-            <div>
-              <p style={{ fontWeight: 680 }}>{game.game_title || `Game ${game.game_id}`}</p>
-              <p className="muted">{game.venue_name}</p>
-            </div>
-            <p>{formatDateTime(game.start_time)}</p>
-            <p>
-              <span className="pill">{game.status}</span>
-            </p>
-            <p>
-              <Link href={`/games/${game.game_id}`} style={{ color: "var(--accent)" }}>
-                Open details
-              </Link>
-            </p>
-          </article>
-        ))}
-      </section>
+      <DataTable
+        columns={[
+          {
+            key: "game",
+            label: "Game",
+            className: "table-col-primary",
+            render: (game) => (
+              <div>
+                <p className="table-title">{game.game_title || `Game ${game.game_id}`}</p>
+                <p className="muted">{game.venue_name}</p>
+              </div>
+            ),
+          },
+          {
+            key: "buy-in",
+            label: "Buy-in",
+            render: (game) => <p>{formatCurrency(game.buy_in)}</p>,
+          },
+          {
+            key: "time",
+            label: "Start Time",
+            render: (game) => <p>{formatDateTime(game.start_time)}</p>,
+          },
+          {
+            key: "status",
+            label: "Status",
+            render: (game) => (
+              <div className="table-actions">
+                <span className="pill">{game.status}</span>
+                <Link href={`/games/${game.game_id}`} className="table-link">
+                  Open details
+                </Link>
+              </div>
+            ),
+          },
+        ]}
+        rows={games}
+        empty={
+          <EmptyState
+            title="No games yet"
+            description="Create your first tournament from the backend or the upcoming admin flow."
+          />
+        }
+      />
     </main>
   );
 }
