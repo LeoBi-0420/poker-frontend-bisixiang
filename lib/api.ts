@@ -158,26 +158,10 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
   }));
 }
 
-export async function getPlayerProfile(id: number | string): Promise<PlayerProfile> {
-  const playerId = Number(id);
-  if (Number.isNaN(playerId)) {
-    throw new ApiError(400, String(id), "Invalid player id");
-  }
-
-  const players = await getPlayers();
-  const player = players.find((entry) => entry.player_id === playerId);
-  if (!player) {
-    throw new ApiError(404, `/players/${playerId}`, "Player not found");
-  }
-
-  const games = await getGames();
-  const resultsByGame = await Promise.all(
-    games.map(async (game) => ({
-      game,
-      results: await getGameResults(game.game_id),
-    })),
-  );
-
+function buildPlayerProfile(
+  player: Player,
+  resultsByGame: Array<{ game: Game; results: Result[] }>,
+): PlayerProfile {
   const recentResults: PlayerProfileGame[] = resultsByGame
     .flatMap(({ game, results }) =>
       results
@@ -223,4 +207,30 @@ export async function getPlayerProfile(id: number | string): Promise<PlayerProfi
     total_kos: totalKos,
     recent_results: recentResults,
   };
+}
+
+export async function getPlayerProfiles(): Promise<PlayerProfile[]> {
+  const [players, games] = await Promise.all([getPlayers(), getGames()]);
+  const resultsByGame = await Promise.all(
+    games.map(async (game) => ({
+      game,
+      results: await getGameResults(game.game_id),
+    })),
+  );
+
+  return players.map((player) => buildPlayerProfile(player, resultsByGame));
+}
+
+export async function getPlayerProfile(id: number | string): Promise<PlayerProfile> {
+  const playerId = Number(id);
+  if (Number.isNaN(playerId)) {
+    throw new ApiError(400, String(id), "Invalid player id");
+  }
+
+  const profiles = await getPlayerProfiles();
+  const profile = profiles.find((entry) => entry.player.player_id === playerId);
+  if (!profile) {
+    throw new ApiError(404, `/players/${playerId}`, "Player not found");
+  }
+  return profile;
 }
