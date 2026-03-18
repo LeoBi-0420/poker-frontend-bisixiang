@@ -4,6 +4,7 @@ import { ADMIN_COOKIE_NAME, adminPasswordConfigured, isAdminSessionValue } from 
 import { getGameResults, getGames, getPlayers, getVenues } from "@/lib/api";
 import { PageHeader } from "@/components/public/PageHeader";
 import { StatCard } from "@/components/public/StatCard";
+import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { AdminGameShell } from "./AdminGameShell";
 
 interface Props {
@@ -269,9 +270,9 @@ export default async function AdminPage({ searchParams }: Props) {
                     </div>
                     <input type="hidden" name="game_id" value={result.game_id} />
                     <input type="hidden" name="player_id" value={result.player_id ?? ""} />
-                    <button type="submit" className="btn btn-danger">
-                      Delete
-                    </button>
+                    <ConfirmDeleteButton
+                      message={`Delete ${result.player}'s result from ${result.game_title}? This cannot be undone.`}
+                    />
                   </form>
                 ))
               )}
@@ -293,9 +294,9 @@ export default async function AdminPage({ searchParams }: Props) {
                     </div>
                     <input type="hidden" name="game_id" value={game.game_id} />
                     <input type="hidden" name="game_title" value={game.game_title || `Game ${game.game_id}`} />
-                    <button type="submit" className="btn btn-danger">
-                      Delete
-                    </button>
+                    <ConfirmDeleteButton
+                      message={`Delete ${game.game_title || `Game ${game.game_id}`}? This will also delete all attached results.`}
+                    />
                   </form>
                 ))
               )}
@@ -317,9 +318,9 @@ export default async function AdminPage({ searchParams }: Props) {
                     </div>
                     <input type="hidden" name="player_id" value={player.player_id} />
                     <input type="hidden" name="display_name" value={player.display_name} />
-                    <button type="submit" className="btn btn-danger">
-                      Delete
-                    </button>
+                    <ConfirmDeleteButton
+                      message={`Delete player ${player.display_name}? This only works when no results are linked to this player.`}
+                    />
                   </form>
                 ))
               )}
@@ -343,9 +344,9 @@ export default async function AdminPage({ searchParams }: Props) {
                     </div>
                     <input type="hidden" name="venue_id" value={venue.venue_id} />
                     <input type="hidden" name="venue_name" value={venue.venue_name} />
-                    <button type="submit" className="btn btn-danger">
-                      Delete
-                    </button>
+                    <ConfirmDeleteButton
+                      message={`Delete venue ${venue.venue_name}? This only works when no games are linked to this venue.`}
+                    />
                   </form>
                 ))
               )}
