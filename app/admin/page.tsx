@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_COOKIE_NAME, adminPasswordConfigured, isAdminSessionValue } from "@/lib/admin-auth";
-import { getGames, getPlayers, getVenues } from "@/lib/api";
+import { getGameResults, getGames, getPlayers, getVenues } from "@/lib/api";
 import { PageHeader } from "@/components/public/PageHeader";
 import { StatCard } from "@/components/public/StatCard";
 import { AdminGameShell } from "./AdminGameShell";
@@ -23,6 +23,19 @@ export default async function AdminPage({ searchParams }: Props) {
 
   const params = await searchParams;
   const [venues, players, games] = await Promise.all([getVenues(), getPlayers(), getGames()]);
+  const resultsByGame = await Promise.all(
+    games.map(async (game) => ({
+      game,
+      results: await getGameResults(game.game_id),
+    })),
+  );
+  const adminResults = resultsByGame.flatMap(({ game, results }) =>
+    results.map((result) => ({
+      ...result,
+      game_id: game.game_id,
+      game_title: game.game_title || `Game ${game.game_id}`,
+    })),
+  );
   const error = pick(params.error);
   const message = pick(params.message);
 
@@ -66,7 +79,7 @@ export default async function AdminPage({ searchParams }: Props) {
       </section>
 
       {error && <div className="error-box">{error}</div>}
-      {message && <div className="card" style={{ marginTop: "0.9rem" }}>{message}</div>}
+      {message && <div className="success-box">{message}</div>}
 
       <section className="card-grid" style={{ marginTop: "1rem" }}>
         <article className="card">
@@ -230,6 +243,115 @@ export default async function AdminPage({ searchParams }: Props) {
             </button>
           </form>
         </article>
+      </section>
+
+      <section className="page-section">
+        <div className="section-heading-row">
+          <h3 className="section-heading">Manage Existing Data</h3>
+          <span className="muted">Delete results first, then games. Players and venues are protected when linked data exists.</span>
+        </div>
+
+        <div className="card-grid admin-manage-grid">
+          <article className="card admin-manage-card">
+            <h4 className="section-heading">Delete Results</h4>
+            <p className="page-subheading">Safest first step when cleaning up incorrect tournament entries.</p>
+            <div className="admin-manage-list">
+              {adminResults.length === 0 ? (
+                <p className="muted">No results recorded yet.</p>
+              ) : (
+                adminResults.map((result) => (
+                  <form key={`${result.game_id}-${result.player_id}-${result.finish_rank}`} method="POST" action="/admin/delete-results" className="admin-manage-item">
+                    <div>
+                      <p className="table-title">{result.player}</p>
+                      <p className="muted">
+                        {result.game_title} · Rank #{result.finish_rank} · {result.points} pts
+                      </p>
+                    </div>
+                    <input type="hidden" name="game_id" value={result.game_id} />
+                    <input type="hidden" name="player_id" value={result.player_id ?? ""} />
+                    <button type="submit" className="btn btn-danger">
+                      Delete
+                    </button>
+                  </form>
+                ))
+              )}
+            </div>
+          </article>
+
+          <article className="card admin-manage-card">
+            <h4 className="section-heading">Delete Games</h4>
+            <p className="page-subheading">Deleting a game also deletes its attached results.</p>
+            <div className="admin-manage-list">
+              {games.length === 0 ? (
+                <p className="muted">No games to manage.</p>
+              ) : (
+                games.map((game) => (
+                  <form key={game.game_id} method="POST" action="/admin/delete-games" className="admin-manage-item">
+                    <div>
+                      <p className="table-title">{game.game_title || `Game ${game.game_id}`}</p>
+                      <p className="muted">{game.venue_name}</p>
+                    </div>
+                    <input type="hidden" name="game_id" value={game.game_id} />
+                    <input type="hidden" name="game_title" value={game.game_title || `Game ${game.game_id}`} />
+                    <button type="submit" className="btn btn-danger">
+                      Delete
+                    </button>
+                  </form>
+                ))
+              )}
+            </div>
+          </article>
+
+          <article className="card admin-manage-card">
+            <h4 className="section-heading">Delete Players</h4>
+            <p className="page-subheading">Only players with no linked results can be deleted.</p>
+            <div className="admin-manage-list">
+              {players.length === 0 ? (
+                <p className="muted">No players to manage.</p>
+              ) : (
+                players.map((player) => (
+                  <form key={player.player_id} method="POST" action="/admin/delete-players" className="admin-manage-item">
+                    <div>
+                      <p className="table-title">{player.display_name}</p>
+                      <p className="muted">Player #{player.player_id}</p>
+                    </div>
+                    <input type="hidden" name="player_id" value={player.player_id} />
+                    <input type="hidden" name="display_name" value={player.display_name} />
+                    <button type="submit" className="btn btn-danger">
+                      Delete
+                    </button>
+                  </form>
+                ))
+              )}
+            </div>
+          </article>
+
+          <article className="card admin-manage-card">
+            <h4 className="section-heading">Delete Venues</h4>
+            <p className="page-subheading">Only venues with no linked games can be deleted.</p>
+            <div className="admin-manage-list">
+              {venues.length === 0 ? (
+                <p className="muted">No venues to manage.</p>
+              ) : (
+                venues.map((venue) => (
+                  <form key={venue.venue_id} method="POST" action="/admin/delete-venues" className="admin-manage-item">
+                    <div>
+                      <p className="table-title">{venue.venue_name}</p>
+                      <p className="muted">
+                        {[venue.city, venue.state].filter(Boolean).join(", ")}
+                      </p>
+                    </div>
+                    <input type="hidden" name="venue_id" value={venue.venue_id} />
+                    <input type="hidden" name="venue_name" value={venue.venue_name} />
+                    <button type="submit" className="btn btn-danger">
+                      Delete
+                    </button>
+                  </form>
+                ))
+              )}
+            </div>
+          </article>
+        </div>
       </section>
     </main>
   );

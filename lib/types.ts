@@ -47,6 +47,7 @@ export interface Game {
 
 export interface Result {
   finish_rank: number;
+  player_id?: number;
   player: string;
   points: number;
   kos: number;

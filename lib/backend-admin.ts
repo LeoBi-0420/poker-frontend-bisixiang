@@ -14,3 +14,10 @@ export async function postBackend(path: string, payload: unknown): Promise<Respo
     cache: "no-store",
   });
 }
+
+export async function deleteBackend(path: string): Promise<Response> {
+  return fetch(backendUrl(path), {
+    method: "DELETE",
+    cache: "no-store",
+  });
+}
