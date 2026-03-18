@@ -304,7 +304,7 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
           )}
         </pre>
         {status.type !== "idle" && (
-          <div className={status.type === "error" ? "error-box" : "card"}>
+          <div className={status.type === "error" ? "error-box" : "success-box"}>
             {status.message}
           </div>
         )}
