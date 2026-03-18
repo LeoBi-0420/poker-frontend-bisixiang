@@ -55,7 +55,37 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
     [rows],
   );
 
-  const ready = Boolean(gameTitle && startTime && venueId && normalizedRows.length);
+  const incompleteRows = useMemo(
+    () =>
+      rows.filter((row) => {
+        const hasAnyValue =
+          row.playerId !== "" ||
+          row.rank !== "" ||
+          row.points !== "" ||
+          row.kos !== "" ||
+          row.eliminatedBy !== "";
+
+        if (!hasAnyValue) return false;
+        return !(row.playerId && row.rank);
+      }).length,
+    [rows],
+  );
+
+  function getMissingRequirements() {
+    const missing: string[] = [];
+    if (!gameTitle.trim()) missing.push("game title");
+    if (!startTime) missing.push("date & time");
+    if (!venueId) missing.push("venue");
+    if (!normalizedRows.length) missing.push("at least one player result");
+    if (incompleteRows > 0) {
+      missing.push(
+        incompleteRows === 1
+          ? "complete the partially filled result row"
+          : `complete ${incompleteRows} partially filled result rows`,
+      );
+    }
+    return missing;
+  }
 
   function updateRow(index: number, patch: Partial<ResultDraft>) {
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -101,8 +131,12 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
   }
 
   async function handleSubmit() {
-    if (!ready) {
-      setStatus({ type: "error", message: "Please fill in game info and at least one result." });
+    const missing = getMissingRequirements();
+    if (missing.length > 0) {
+      setStatus({
+        type: "error",
+        message: `Missing required information: ${missing.join(", ")}.`,
+      });
       return;
     }
 
@@ -131,7 +165,7 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
 
       resetForm();
       router.refresh();
-      setStatus({ type: "success", message: "Game + results saved and rankings refreshed." });
+      setStatus({ type: "success", message: "Saved Successfully! Game and results are now live across the site." });
     } catch (err) {
       setStatus({ type: "error", message: err instanceof Error ? err.message : "Unknown error" });
     } finally {
@@ -144,17 +178,26 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
       <div style={{ display: "grid", gap: "1rem" }}>
         <div className="card" style={{ background: "var(--surface-alt)" }}>
           <h3 style={{ fontWeight: 700 }}>Step 1 · Game info</h3>
+          <p className="admin-form-note">
+            <span className="required-indicator">*</span> Required fields. Fields marked <span className="optional-label">(optional)</span> can be left blank.
+          </p>
           <div className="form-stack" style={{ marginTop: "0.75rem" }}>
             <div className="form-field">
-              <label>Title</label>
+              <label>
+                Title <span className="required-indicator">*</span>
+              </label>
               <input value={gameTitle} onChange={(e) => setGameTitle(e.target.value)} placeholder="Urban Pie Sunday" />
             </div>
             <div className="form-field">
-              <label>Date & time</label>
+              <label>
+                Date & time <span className="required-indicator">*</span>
+              </label>
               <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             </div>
             <div className="form-field">
-              <label>Venue</label>
+              <label>
+                Venue <span className="required-indicator">*</span>
+              </label>
               <select value={venueId} onChange={(e) => setVenueId(e.target.value ? Number(e.target.value) : "")}>
                 <option value="">Select venue</option>
                 {venues.map((venue) => (
@@ -165,7 +208,9 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
               </select>
             </div>
             <div className="form-field">
-              <label>Buy-in (USD)</label>
+              <label>
+                Buy-in (USD) <span className="optional-label">(optional)</span>
+              </label>
               <input type="number" min="0" step="0.01" value={buyIn} onChange={(e) => setBuyIn(e.target.value)} />
             </div>
             <p className="muted" style={{ fontSize: "0.85rem" }}>
@@ -190,8 +235,8 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
             <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 0.5rem" }}>
               <thead>
                 <tr className="muted" style={{ textAlign: "left", fontSize: "0.85rem" }}>
-                  <th>Player</th>
-                  <th>Rank</th>
+                  <th>Player *</th>
+                  <th>Rank *</th>
                   <th>Points</th>
                   <th>KOs</th>
                   <th>Eliminated by</th>
@@ -267,7 +312,7 @@ export function AdminGameShell({ initialPlayers, initialVenues }: Props) {
           <button type="button" className="btn" onClick={resetForm} disabled={submitting}>
             Reset
           </button>
-          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={!ready || submitting}>
+          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
             {submitting ? "Saving..." : "Save game & results"}
           </button>
         </div>

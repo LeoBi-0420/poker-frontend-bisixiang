@@ -430,6 +430,22 @@ a {
   color: var(--text-subtle);
 }
 
+.admin-form-note {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+}
+
+.required-indicator {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.optional-label {
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+}
+
 .form-field input,
 .form-field select {
   width: 100%;

@@ -74,20 +74,28 @@ export default async function AdminPage({ searchParams }: Props) {
           <p className="page-subheading">Create a new poker venue before scheduling games there.</p>
           <form method="POST" action="/admin/venues" className="form-stack">
             <div className="form-field">
-              <label htmlFor="venue_name">Venue name</label>
+              <label htmlFor="venue_name">
+                Venue name <span className="required-indicator">*</span>
+              </label>
               <input id="venue_name" name="venue_name" required />
             </div>
             <div className="form-field">
-              <label htmlFor="address">Address</label>
+              <label htmlFor="address">
+                Address <span className="optional-label">(optional)</span>
+              </label>
               <input id="address" name="address" />
             </div>
             <div className="form-field">
-              <label htmlFor="city">City</label>
-              <input id="city" name="city" defaultValue="Atlanta" />
+              <label htmlFor="city">
+                City <span className="required-indicator">*</span>
+              </label>
+              <input id="city" name="city" defaultValue="Atlanta" required />
             </div>
             <div className="form-field">
-              <label htmlFor="state">State</label>
-              <input id="state" name="state" defaultValue="GA" />
+              <label htmlFor="state">
+                State <span className="required-indicator">*</span>
+              </label>
+              <input id="state" name="state" defaultValue="GA" required />
             </div>
             <button type="submit" className="btn btn-primary">
               Create Venue
@@ -100,11 +108,15 @@ export default async function AdminPage({ searchParams }: Props) {
           <p className="page-subheading">Add a player profile to make them available in results entry.</p>
           <form method="POST" action="/admin/players" className="form-stack">
             <div className="form-field">
-              <label htmlFor="display_name">Display name</label>
+              <label htmlFor="display_name">
+                Display name <span className="required-indicator">*</span>
+              </label>
               <input id="display_name" name="display_name" required />
             </div>
             <div className="form-field">
-              <label htmlFor="avatar_url">Avatar URL</label>
+              <label htmlFor="avatar_url">
+                Avatar URL <span className="optional-label">(optional)</span>
+              </label>
               <input id="avatar_url" name="avatar_url" type="url" placeholder="https://..." />
             </div>
             <button type="submit" className="btn btn-primary">
@@ -118,15 +130,21 @@ export default async function AdminPage({ searchParams }: Props) {
           <p className="page-subheading">Use the simpler form when you only need to create a tournament record.</p>
           <form method="POST" action="/admin/games" className="form-stack">
             <div className="form-field">
-              <label htmlFor="game_title">Game title</label>
+              <label htmlFor="game_title">
+                Game title <span className="required-indicator">*</span>
+              </label>
               <input id="game_title" name="game_title" required />
             </div>
             <div className="form-field">
-              <label htmlFor="start_time">Start time</label>
+              <label htmlFor="start_time">
+                Start time <span className="required-indicator">*</span>
+              </label>
               <input id="start_time" name="start_time" type="datetime-local" required />
             </div>
             <div className="form-field">
-              <label htmlFor="venue_id">Venue</label>
+              <label htmlFor="venue_id">
+                Venue <span className="required-indicator">*</span>
+              </label>
               <select id="venue_id" name="venue_id" required>
                 <option value="">Select venue</option>
                 {venues.map((venue) => (
@@ -137,7 +155,9 @@ export default async function AdminPage({ searchParams }: Props) {
               </select>
             </div>
             <div className="form-field">
-              <label htmlFor="buy_in">Buy-in (USD)</label>
+              <label htmlFor="buy_in">
+                Buy-in (USD) <span className="optional-label">(optional)</span>
+              </label>
               <input id="buy_in" name="buy_in" type="number" min="0" step="0.01" placeholder="0" />
             </div>
             <button type="submit" className="btn btn-primary">
@@ -151,7 +171,9 @@ export default async function AdminPage({ searchParams }: Props) {
           <p className="page-subheading">Quick single-result entry for corrections and follow-up updates.</p>
           <form method="POST" action="/admin/results" className="form-stack">
             <div className="form-field">
-              <label htmlFor="game_id">Game</label>
+              <label htmlFor="game_id">
+                Game <span className="required-indicator">*</span>
+              </label>
               <select id="game_id" name="game_id" required>
                 <option value="">Select game</option>
                 {games.map((game) => (
@@ -162,7 +184,9 @@ export default async function AdminPage({ searchParams }: Props) {
               </select>
             </div>
             <div className="form-field">
-              <label htmlFor="player_id">Player</label>
+              <label htmlFor="player_id">
+                Player <span className="required-indicator">*</span>
+              </label>
               <select id="player_id" name="player_id" required>
                 <option value="">Select player</option>
                 {players.map((player) => (
@@ -173,15 +197,21 @@ export default async function AdminPage({ searchParams }: Props) {
               </select>
             </div>
             <div className="form-field">
-              <label htmlFor="finish_rank">Finish rank</label>
+              <label htmlFor="finish_rank">
+                Finish rank <span className="required-indicator">*</span>
+              </label>
               <input id="finish_rank" name="finish_rank" type="number" min="1" required />
             </div>
             <div className="form-field">
-              <label htmlFor="points">Points</label>
+              <label htmlFor="points">
+                Points <span className="required-indicator">*</span>
+              </label>
               <input id="points" name="points" type="number" required />
             </div>
             <div className="form-field">
-              <label htmlFor="kos">KOs</label>
+              <label htmlFor="kos">
+                KOs <span className="required-indicator">*</span>
+              </label>
               <input id="kos" name="kos" type="number" min="0" defaultValue="0" required />
             </div>
             <div className="form-field">
