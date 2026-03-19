@@ -32,7 +32,7 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(
   path: string,
-  timeoutMs = 10_000,
+  timeoutMs = 30_000,
 ): Promise<T> {
   const base = typeof window === "undefined" ? ENV.apiServer : ENV.apiPublic;
   const url = `${base}${path}`;
