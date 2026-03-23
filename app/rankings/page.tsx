@@ -8,7 +8,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function RankingsPage() {
-  const leaderboard = await getLeaderboard();
+  const leaderboardResult = await Promise.allSettled([getLeaderboard()]);
+  const leaderboard =
+    leaderboardResult[0].status === "fulfilled" ? leaderboardResult[0].value : [];
+  const hasFailure = leaderboardResult[0].status === "rejected";
   const leader = leaderboard[0];
   const totalGamesTracked = leaderboard.reduce(
     (sum, row) => sum + row.tournaments_played,
@@ -22,6 +25,12 @@ export default async function RankingsPage() {
         title="Rankings"
         description="Simple points-based leaderboard built from recorded results data."
       />
+
+      {hasFailure && (
+        <div className="error-box" style={{ marginTop: "1rem" }}>
+          Ranking data is temporarily unavailable. The page is still up, but one or more backend requests failed.
+        </div>
+      )}
 
       <section className="card-grid">
         <StatCard label="Ranked Players" value={leaderboard.length} hint="Players with recorded results" />
@@ -81,7 +90,11 @@ export default async function RankingsPage() {
         empty={
           <EmptyState
             title="No ranking data yet"
-            description="Add game results to start building the community leaderboard."
+            description={
+              hasFailure
+                ? "Ranking data could not be loaded from the backend right now."
+                : "Add game results to start building the community leaderboard."
+            }
           />
         }
       />

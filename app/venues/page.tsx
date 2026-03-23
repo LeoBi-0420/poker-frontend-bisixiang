@@ -8,7 +8,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function VenuesPage() {
-  const venues = await getVenues();
+  const venuesResult = await Promise.allSettled([getVenues()]);
+  const venues = venuesResult[0].status === "fulfilled" ? venuesResult[0].value : [];
+  const hasFailure = venuesResult[0].status === "rejected";
   const cityCount = new Set(venues.map((venue) => venue.city)).size;
   const addressCount = venues.filter((venue) => Boolean(venue.address)).length;
 
@@ -19,6 +21,12 @@ export default async function VenuesPage() {
         title="Venues"
         description="Public directory of Atlanta-area venues that host tracked poker games."
       />
+
+      {hasFailure && (
+        <div className="error-box" style={{ marginTop: "1rem" }}>
+          Venue data is temporarily unavailable. The page is still up, but the backend request failed.
+        </div>
+      )}
 
       <section className="card-grid">
         <StatCard label="Total Venues" value={venues.length} hint="Tracked hosting locations" />
@@ -56,7 +64,11 @@ export default async function VenuesPage() {
         empty={
           <EmptyState
             title="No venues yet"
-            description="Add your first venue from the backend or upcoming admin workflow."
+            description={
+              hasFailure
+                ? "Venue data could not be loaded from the backend right now."
+                : "Add your first venue from the backend or upcoming admin workflow."
+            }
           />
         }
       />

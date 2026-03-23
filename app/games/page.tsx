@@ -10,7 +10,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function GamesPage() {
-  const games = await getGames();
+  const gamesResult = await Promise.allSettled([getGames()]);
+  const games = gamesResult[0].status === "fulfilled" ? gamesResult[0].value : [];
+  const hasFailure = gamesResult[0].status === "rejected";
   const completedGames = games.filter((game) => game.status === "completed").length;
   const scheduledGames = games.filter((game) => game.status === "scheduled").length;
   const averageBuyIn =
@@ -25,6 +27,12 @@ export default async function GamesPage() {
         title="Games"
         description="Recent poker tournaments with status, timing, and venue context."
       />
+
+      {hasFailure && (
+        <div className="error-box" style={{ marginTop: "1rem" }}>
+          Game data is temporarily unavailable. The page is still up, but the backend request failed.
+        </div>
+      )}
 
       <section className="card-grid">
         <StatCard label="Total Games" value={games.length} hint="All tracked tournaments" />
@@ -73,7 +81,11 @@ export default async function GamesPage() {
         empty={
           <EmptyState
             title="No games yet"
-            description="Create your first tournament from the backend or the upcoming admin flow."
+            description={
+              hasFailure
+                ? "Game data could not be loaded from the backend right now."
+                : "Create your first tournament from the backend or the upcoming admin flow."
+            }
           />
         }
       />
