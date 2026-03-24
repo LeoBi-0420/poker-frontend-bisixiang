@@ -23,13 +23,33 @@ export default async function AdminPage({ searchParams }: Props) {
   if (authEnabled && !isAdminSessionValue(session)) redirect("/admin/login");
 
   const params = await searchParams;
-  const [venues, players, games] = await Promise.all([getVenues(), getPlayers(), getGames()]);
-  const resultsByGame = await Promise.all(
+  const [venuesResult, playersResult, gamesResult] = await Promise.allSettled([
+    getVenues(),
+    getPlayers(),
+    getGames(),
+  ]);
+  const venues = venuesResult.status === "fulfilled" ? venuesResult.value : [];
+  const players = playersResult.status === "fulfilled" ? playersResult.value : [];
+  const games = gamesResult.status === "fulfilled" ? gamesResult.value : [];
+  const resultsByGameSettled = await Promise.allSettled(
     games.map(async (game) => ({
       game,
       results: await getGameResults(game.game_id),
     })),
   );
+  const resultsByGame = resultsByGameSettled
+    .filter(
+      (
+        entry,
+      ): entry is PromiseFulfilledResult<{ game: (typeof games)[number]; results: Awaited<ReturnType<typeof getGameResults>> }> =>
+        entry.status === "fulfilled",
+    )
+    .map((entry) => entry.value);
+  const hasFailure =
+    venuesResult.status === "rejected" ||
+    playersResult.status === "rejected" ||
+    gamesResult.status === "rejected" ||
+    resultsByGameSettled.some((entry) => entry.status === "rejected");
   const adminResults = resultsByGame.flatMap(({ game, results }) =>
     results.map((result) => ({
       ...result,
@@ -56,6 +76,12 @@ export default async function AdminPage({ searchParams }: Props) {
           ) : null
         }
       />
+
+      {hasFailure && (
+        <div className="error-box" style={{ marginTop: "1rem" }}>
+          Some admin data is temporarily unavailable. The page is still up, but one or more backend requests failed.
+        </div>
+      )}
 
       {!authEnabled && (
         <div className="card" style={{ marginTop: "1rem" }}>
